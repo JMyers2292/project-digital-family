@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Build output
+dist/
+
+# Environment — never commit secrets
+.env
+
+# Data
+data/
+
+# OS
+.DS_Store
+*.swp
