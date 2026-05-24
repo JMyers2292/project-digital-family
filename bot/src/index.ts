@@ -9,17 +9,17 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const JEREMY_ID = Number(process.env.TG_USER_JEREMY);
-const PARTNER_ID = Number(process.env.TG_USER_PARTNER);
+const PARTNER_1_ID = Number(process.env.TG_USER_1);
+const PARTNER_2_ID = Number(process.env.TG_USER_2);
 
-if (!JEREMY_ID || !PARTNER_ID) {
-  console.error("[bot] TG_USER_JEREMY and TG_USER_PARTNER must both be set — check your .env");
+if (!PARTNER_1_ID || !PARTNER_2_ID) {
+  console.error("[bot] TG_USER_1 and TG_USER_2 must both be set — check your .env");
   process.exit(1);
 }
 
 const ALLOWED: Map<number, string> = new Map([
-  [JEREMY_ID, "Jeremy"],
-  [PARTNER_ID, "Partner"],
+  [PARTNER_1_ID, "Partner"],
+  [PARTNER_2_ID, "Partner"],
 ]);
 
 // --- Bot setup ---

@@ -8,8 +8,8 @@ This document is the working spec. Read it end-to-end before writing code. Build
 
 ## Users
 
-- **Jeremy** — primary developer, based in Australia (AEST)
-- **Partner** — co-user, same Telegram group chat
+- **Partner 1** — primary developer, based in Australia (AEST)
+- **Partner 2** — co-user, same Telegram group chat
 - Two kids: a toddler and a baby
 
 Dietary constraints in the household: wheat-free, dairy-free, egg-free. Shops at Woolworths. Budget-conscious.
@@ -19,7 +19,7 @@ Dietary constraints in the household: wheat-free, dairy-free, egg-free. Shops at
 ## What we're building
 
 - A Node.js + TypeScript bot running on the Pi as a systemd service
-- Listens to a single Telegram group chat (Jeremy + partner + bot)
+- Listens to a single Telegram group chat (Partner 1 + Partner 2 + bot)
 - Routes messages through a tiered Claude model setup
 - Reads and writes to an Obsidian markdown vault for persistent memory
 - Reads and writes Google Calendar for scheduling
@@ -265,7 +265,7 @@ Registered via `@BotFather` and handled directly in `src/index.ts`:
 For prose messages (not slash commands):
 
 1. `grammy` receives message → extract `sender`, `chat_id`, `text`
-2. Reject if sender not in allowlist (`TG_USER_JEREMY`, `TG_USER_PARTNER` env vars)
+2. Reject if sender not in allowlist (`TG_USER_1`, `TG_USER_2` env vars)
 3. Invoke router subagent: `claude -p --agent router` with `sender: ...\nmessage: ...`
 4. Parse JSON output (strip code fences defensively)
 5. If `confidence < 0.7` → coerce to `unclear`
@@ -288,8 +288,8 @@ Static facts: DOB, blood type, allergies, current size (clothing/shoes), GP, day
 ### `/vault/kids/{name}/measurements.md`
 Append-only log:
 ```
-2026-05-24 weight 7.2kg (logged by jeremy)
-2026-05-24 height 65cm (logged by partner)
+2026-05-24 weight 7.2kg (logged by partner1)
+2026-05-24 height 65cm (logged by partner2)
 ```
 
 ### `/vault/kids/{name}/milestones.md`
@@ -420,7 +420,7 @@ import { invokeClaude, parseRouterOutput, RouterResult } from "./claude.js";
 const CONFIDENCE_THRESHOLD = 0.7;
 
 export async function classify(
-  sender: "jeremy" | "partner",
+  sender: "partner1" | "partner2",
   chatId: number,
   message: string,
 ): Promise<RouterResult> {
@@ -470,14 +470,14 @@ import "dotenv/config";
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
 
 const ALLOWED = new Set([
-  Number(process.env.TG_USER_JEREMY),
-  Number(process.env.TG_USER_PARTNER),
+  Number(process.env.TG_USER_1),
+  Number(process.env.TG_USER_2),
 ]);
 
-function senderOf(ctx: Context): "jeremy" | "partner" | null {
+function senderOf(ctx: Context): "partner1" | "partner2" | null {
   const id = ctx.from?.id;
   if (!id || !ALLOWED.has(id)) return null;
-  return id === Number(process.env.TG_USER_JEREMY) ? "jeremy" : "partner";
+  return id === Number(process.env.TG_USER_1) ? "partner1" : "partner2";
 }
 
 bot.command("help", ctx => ctx.reply(HELP_TEXT));
@@ -609,8 +609,8 @@ export function recordSessionId(chatId: number, sessionId: string) {
 
 ```
 TELEGRAM_BOT_TOKEN=...
-TG_USER_JEREMY=...      # numeric Telegram user ID
-TG_USER_PARTNER=...     # numeric Telegram user ID
+TG_USER_1=...           # numeric Telegram user ID (Partner 1)
+TG_USER_2=...           # numeric Telegram user ID (Partner 2)
 TG_CHAT_ID=...          # the group chat ID (for cron jobs to post)
 GOOGLE_OAUTH_CLIENT_ID=...
 GOOGLE_OAUTH_CLIENT_SECRET=...
