@@ -1,0 +1,33 @@
+name: digital-parent
+
+services:
+  bot:
+    build:
+      context: ./bot
+    env_file: ./bot/.env
+    environment:
+      # Tells the bot where its project root is inside the container
+      PROJECT_ROOT: /app
+    volumes:
+      # --- Persistent data (wiped by `docker compose down -v`) ---
+
+      # SQLite database (state.db — added in M3.5)
+      # No separate DB container needed: SQLite is file-based and embedded in the bot.
+      - data:/app/data
+
+      # Obsidian vault (added in M4)
+      - vault:/app/vault
+
+      # --- Host mounts ---
+
+      # Claude Code auth from your dev machine (read-only).
+      # The container runs `claude -p` and needs your existing login credentials.
+      # If this path differs on your machine, update it here.
+      - ${HOME}/.claude:/root/.claude:ro
+    restart: unless-stopped
+
+# Named volumes are removed by `docker compose down -v`, giving a clean DB/vault
+# on every fresh run. Omit `-v` if you want data to persist across restarts.
+volumes:
+  data:
+  vault:

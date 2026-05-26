@@ -6,12 +6,80 @@ Reference for working on the Digital Parent codebase. For the full product spec 
 
 ## Contents
 
+- [Docker](#docker)
 - [Module map](#module-map)
 - [Environment variables](#environment-variables)
 - [Swapping the Claude client](#swapping-the-claude-client)
 - [Adding a new message handler](#adding-a-new-message-handler)
 - [Development workflow](#development-workflow)
 - [Local vs Pi differences](#local-vs-pi-differences)
+- [Docker](#docker)
+
+---
+
+## Docker
+
+Docker Compose is the recommended way to test the full stack locally before deploying to the Pi. It mirrors the production environment closely and gives you a clean database on demand.
+
+### Why no separate DB container?
+
+The spec uses SQLite (`better-sqlite3`), which is a file embedded in the bot process — not a server. There is no database container. Instead, the `data` volume holds the SQLite file (`state.db`). Removing the volume wipes the database, which is exactly what `docker compose down -v` does.
+
+### First-time setup
+
+1. Make sure `bot/.env` is filled in (copy from `.env.example`).
+2. Make sure you are logged into Claude Code on your host machine (`claude auth`). The container mounts `~/.claude` from your host for authentication — no separate login needed inside the container.
+
+### Common commands
+
+```bash
+# Build the image and start the bot
+docker compose up --build
+
+# Start without rebuilding (faster if code hasn't changed)
+docker compose up
+
+# Run in the background
+docker compose up -d
+
+# View logs
+docker compose logs -f bot
+
+# Stop and wipe all data (data volume + vault volume removed)
+docker compose down -v
+
+# Stop but keep data intact
+docker compose down
+```
+
+### When to rebuild
+
+The image compiles TypeScript at build time. Rebuild whenever you change source files:
+
+```bash
+docker compose up --build
+```
+
+Hot reload is not used in Docker (file-change events don't propagate reliably from Windows to the container). For rapid iteration during development, use `npm run dev` locally instead and switch to Docker for integration testing.
+
+### Volume behaviour
+
+| Volume | Contents | Wiped by `down -v`? |
+|---|---|---|
+| `data` | SQLite database (`state.db`) | Yes |
+| `vault` | Obsidian vault markdown files | Yes |
+
+The `vault` volume is empty until M4. The `data` volume is empty until M3.5 (when `state.db` is created).
+
+### Claude auth inside the container
+
+The container runs `claude -p` via `child_process.spawn`. It needs access to your Claude Code credentials, which live in `~/.claude` on your host. The compose file mounts this directory as read-only:
+
+```yaml
+- ${HOME}/.claude:/root/.claude:ro
+```
+
+If your credentials are stored elsewhere (check with `claude config` on your host), update this path in `docker-compose.yml`.
 
 ---
 
