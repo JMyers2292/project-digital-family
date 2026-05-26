@@ -1,9 +1,12 @@
+import path from "node:path";
+
 export type Config = {
   telegramBotToken: string;
   partner1Id: number;
   partner2Id: number;
   chatId: number | null;
   projectRoot: string;
+  dataPath: string;
 };
 
 export function loadConfig(): Config {
@@ -25,5 +28,9 @@ export function loadConfig(): Config {
   // On the Pi this should be /opt/digital-parent; locally defaults to cwd
   const projectRoot = process.env.PROJECT_ROOT ?? process.cwd();
 
-  return { telegramBotToken, partner1Id, partner2Id, chatId, projectRoot };
+  // Directory where state.db lives. Defaults to {projectRoot}/data.
+  // On the Pi: /opt/digital-parent/data
+  const dataPath = process.env.DATA_PATH ?? path.join(projectRoot, "data");
+
+  return { telegramBotToken, partner1Id, partner2Id, chatId, projectRoot, dataPath };
 }

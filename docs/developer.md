@@ -111,10 +111,11 @@ Defined in `.env` (gitignored). Copy `.env.example` to get started.
 | `TG_USER_2` | Yes | Numeric Telegram user ID for Partner 2 |
 | `TG_CHAT_ID` | M7+ | Group chat ID — appears in logs on first message (`chat_id=...`) |
 | `PROJECT_ROOT` | Pi only | Absolute path to the project root. Defaults to `cwd`. Set to `/opt/digital-parent` on the Pi. |
+| `DATA_PATH` | Optional | Directory where `state.db` is stored. Defaults to `{PROJECT_ROOT}/data`. Docker sets this to `/app/data`. On the Pi: `/opt/digital-parent/data`. |
+| `VAULT_PATH` | M4+ | Absolute path to the Obsidian vault. Defaults to `{PROJECT_ROOT}/vault`. |
 | `GOOGLE_OAUTH_CLIENT_ID` | M5+ | Google Calendar OAuth credentials |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | M5+ | Google Calendar OAuth credentials |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | M5+ | Google Calendar OAuth credentials |
-| `VAULT_PATH` | M4+ | Absolute path to the Obsidian vault. Defaults to `{PROJECT_ROOT}/vault` |
 
 ---
 
