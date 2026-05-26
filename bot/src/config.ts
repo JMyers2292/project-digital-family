@@ -3,6 +3,7 @@ export type Config = {
   partner1Id: number;
   partner2Id: number;
   chatId: number | null;
+  projectRoot: string;
 };
 
 export function loadConfig(): Config {
@@ -21,5 +22,8 @@ export function loadConfig(): Config {
 
   const chatId = process.env.TG_CHAT_ID ? Number(process.env.TG_CHAT_ID) : null;
 
-  return { telegramBotToken, partner1Id, partner2Id, chatId };
+  // On the Pi this should be /opt/digital-parent; locally defaults to cwd
+  const projectRoot = process.env.PROJECT_ROOT ?? process.cwd();
+
+  return { telegramBotToken, partner1Id, partner2Id, chatId, projectRoot };
 }
