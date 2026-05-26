@@ -1,21 +1,21 @@
 import { Bot, Context } from "grammy";
 import { type Config } from "./config.js";
-import { invokeClaude } from "./claude.js";
+import { type ClaudeClient } from "./claude.js";
 
 const SONNET = "claude-sonnet-4-6";
 
 export class DigitalParentBot {
   private readonly bot: Bot;
   private readonly allowed: Map<number, string>;
-  private readonly projectRoot: string;
+  private readonly claude: ClaudeClient;
 
-  constructor(config: Config) {
+  constructor(config: Config, claude: ClaudeClient) {
     this.bot = new Bot(config.telegramBotToken);
     this.allowed = new Map([
       [config.partner1Id, "Partner"],
       [config.partner2Id, "Partner"],
     ]);
-    this.projectRoot = config.projectRoot;
+    this.claude = claude;
     this.registerHandlers();
   }
 
@@ -35,16 +35,16 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
 
     try {
-      const result = await invokeClaude(this.projectRoot, {
+      const result = await this.claude.invoke({
         model: SONNET,
         prompt: `${name}: ${text}`,
         continueChat: true,
         timeoutMs: 60_000,
       });
 
-      if (result.exitCode === 0 && result.stdout.trim()) {
+      if (result.exitCode === 0 && result.text) {
         console.log(`[claude] reply in ${result.durationMs}ms`);
-        await ctx.reply(result.stdout.trim());
+        await ctx.reply(result.text);
       } else {
         console.error(`[claude] exit=${result.exitCode} stderr=${result.stderr.slice(0, 200)}`);
         await ctx.reply("Hit a snag — try again in a sec?");
