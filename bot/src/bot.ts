@@ -30,7 +30,7 @@ export class DigitalParentBot {
 
     const text = ctx.message?.text ?? "";
     const chatId = ctx.chat?.id;
-    console.log(`[bot] chat_id=${chatId} ${name}: ${text}`);
+    console.log(`[bot] chat_id=${chatId} ${name}: ${JSON.stringify(text)}`);
 
     await ctx.replyWithChatAction("typing");
 
@@ -43,7 +43,7 @@ export class DigitalParentBot {
       });
 
       if (result.exitCode === 0 && result.text) {
-        console.log(`[claude] reply in ${result.durationMs}ms`);
+        console.log(`[claude] reply in ${result.durationMs}ms:\n${result.text}\n`);
         await ctx.reply(result.text);
       } else {
         console.error(`[claude] exit=${result.exitCode} stdout=${result.text.slice(0, 300)} stderr=${result.stderr.slice(0, 300)}`);
