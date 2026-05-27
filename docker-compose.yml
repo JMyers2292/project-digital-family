@@ -24,8 +24,9 @@ services:
 
       # Claude Code auth from your dev machine (read-only).
       # The container runs `claude -p` and needs your existing login credentials.
-      # If this path differs on your machine, update it here.
-      - ${HOME}/.claude:/root/.claude:ro
+      # Claude stores auth in two places — both need to be mounted:
+      - ${HOME}/.claude:/root/.claude:ro         # config directory
+      - ${HOME}/.claude.json:/root/.claude.json:ro  # main config file
     restart: unless-stopped
 
 # Named volumes are removed by `docker compose down -v`, giving a clean DB/vault
