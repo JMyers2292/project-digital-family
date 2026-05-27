@@ -46,7 +46,7 @@ export class DigitalParentBot {
         console.log(`[claude] reply in ${result.durationMs}ms`);
         await ctx.reply(result.text);
       } else {
-        console.error(`[claude] exit=${result.exitCode} stderr=${result.stderr.slice(0, 200)}`);
+        console.error(`[claude] exit=${result.exitCode} stdout=${result.text.slice(0, 300)} stderr=${result.stderr.slice(0, 300)}`);
         await ctx.reply("Hit a snag — try again in a sec?");
       }
     } catch (err) {

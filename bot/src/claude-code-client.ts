@@ -9,7 +9,9 @@ export class ClaudeCodeClient implements ClaudeClient {
   constructor(private readonly projectRoot: string) {}
 
   async invoke(opts: ClaudeInvocation): Promise<ClaudeResult> {
-    const args: string[] = ["-p"];
+    // Prompt is passed as a positional argument — more reliable than stdin
+    // in non-interactive/containerised environments.
+    const args: string[] = ["-p", opts.prompt];
     if (opts.model) args.push("--model", opts.model);
     if (opts.agent) args.push("--agent", opts.agent);
     if (opts.sessionId) args.push("--resume", opts.sessionId);
@@ -22,7 +24,7 @@ export class ClaudeCodeClient implements ClaudeClient {
       const child = spawn("claude", args, {
         cwd: this.projectRoot,
         env: process.env,
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ["ignore", "pipe", "pipe"],
       });
 
       let stdout = "";
@@ -48,9 +50,6 @@ export class ClaudeCodeClient implements ClaudeClient {
         clearTimeout(timer);
         reject(err);
       });
-
-      child.stdin.write(opts.prompt);
-      child.stdin.end();
     });
   }
 }
