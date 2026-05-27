@@ -35,6 +35,7 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
 
     try {
+      console.log(`[claude] model=${SONNET} invoking…`);
       const result = await this.claude.invoke({
         model: SONNET,
         prompt: `${name}: ${text}`,
@@ -43,7 +44,7 @@ export class DigitalParentBot {
       });
 
       if (result.exitCode === 0 && result.text) {
-        console.log(`[claude] reply in ${result.durationMs}ms:\n${result.text}\n`);
+        console.log(`[claude] model=${SONNET} reply in ${result.durationMs}ms:\n${result.text}\n`);
         await ctx.reply(result.text);
       } else {
         console.error(`[claude] exit=${result.exitCode} stdout=${result.text.slice(0, 300)} stderr=${result.stderr.slice(0, 300)}`);
