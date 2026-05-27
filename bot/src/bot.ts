@@ -23,7 +23,8 @@ export class DigitalParentBot {
       return;
     }
     const text = ctx.message?.text ?? "";
-    console.log(`[bot] ${name}: ${text}`);
+    const chatId = ctx.chat?.id;
+    console.log(`[bot] chat_id=${chatId} ${name}: ${text}`);
     await ctx.reply(`${name} said: ${text}`);
   };
 

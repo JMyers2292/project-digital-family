@@ -627,7 +627,7 @@ VAULT_PATH=/opt/digital-parent/vault
 **M1 — Pi hardening + remote access** *(deferred — Pi model TBC)*
 - OS install, SSH lockdown, UFW, fail2ban, Tailscale, no public exposure
 
-**M2 — Telegram echo loop**
+**M2 — Telegram echo loop** ✓ done
 - Bot via BotFather, grammy listener, systemd service, sender allowlist, echo with sender tag
 
 **M3 — Single-shot Claude in the loop**
