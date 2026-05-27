@@ -6,6 +6,8 @@ import { handleCrudWrite, handleCrudRead } from "./handlers/crud.js";
 import { handleCalendar } from "./handlers/calendar.js";
 import { handleReminder } from "./handlers/reminder.js";
 import { handleEscalate } from "./handlers/escalate.js";
+import { handleArtifact } from "./handlers/artifact.js";
+import { type ArtifactFields } from "./router.js";
 
 const HELP_TEXT = `Digital Parent commands:
 /today — what's on today
@@ -15,6 +17,7 @@ const HELP_TEXT = `Digital Parent commands:
 /event <text> — add to calendar (e.g. /event dentist Tuesday 10am)
 /remind <text> — add a reminder
 /kid <name> <thing> — quick log for a specific kid
+/create <request> — generate a file (e.g. /create weekly menu as HTML)
 /sync — start weekly sync now
 /help — show this list
 
@@ -149,6 +152,31 @@ export class DigitalParentBot {
     await ctx.reply("Weekly sync coming in M8 — not wired up yet.");
   };
 
+  private onCreate = async (ctx: Context): Promise<void> => {
+    const name = this.senderName(ctx);
+    if (!name) return;
+
+    const text = ctx.match?.toString().trim();
+    if (!text) {
+      await ctx.reply("What would you like me to create? e.g. /create a weekly menu as HTML");
+      return;
+    }
+
+    await ctx.replyWithChatAction("upload_document");
+    const cls = await this.router.classify(name, text);
+
+    if (cls.intent === "artifact") {
+      await handleArtifact(ctx, this.claude, name, text, cls.fields as ArtifactFields);
+    } else {
+      // Fallback: treat the whole thing as an artifact request with sensible defaults
+      await handleArtifact(ctx, this.claude, name, text, {
+        format: "txt",
+        description: text,
+        filename: "output.txt",
+      });
+    }
+  };
+
   // -- Prose message handler --
 
   private onTextMessage = async (ctx: Context): Promise<void> => {
@@ -194,6 +222,11 @@ export class DigitalParentBot {
       case "needs_reasoning":
         await ctx.reply(await handleEscalate(this.claude, name, text));
         break;
+
+      case "artifact":
+        await ctx.replyWithChatAction("upload_document");
+        await handleArtifact(ctx, this.claude, name, text, cls.fields as ArtifactFields);
+        break;
     }
   };
 
@@ -217,6 +250,7 @@ export class DigitalParentBot {
     this.bot.command("remind", this.onRemind);
     this.bot.command("kid", this.onKid);
     this.bot.command("sync", this.onSync);
+    this.bot.command("create", this.onCreate);
     this.bot.on("message:text", this.onTextMessage);
   }
 

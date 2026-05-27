@@ -11,9 +11,18 @@ export type Intent =
   | "calendar_update"
   | "calendar_delete"
   | "reminder_add"
+  | "artifact"
   | "chitchat"
   | "needs_reasoning"
   | "unclear";
+
+export type ArtifactFormat = "html" | "csv" | "md" | "txt";
+
+export type ArtifactFields = {
+  format: ArtifactFormat;
+  description: string;
+  filename: string;
+};
 
 export type RouterResult = {
   intent: Intent;
