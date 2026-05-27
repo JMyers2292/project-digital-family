@@ -23,11 +23,16 @@ export class ClaudeCodeClient implements ClaudeClient {
     const timeout = opts.timeoutMs ?? 60_000;
     const start = Date.now();
 
+    // On Windows, .cmd wrappers (how npm installs CLI binaries) require
+    // shell: true to be executable via spawn. Has no effect on Linux/Pi.
+    const isWindows = process.platform === "win32";
+
     return new Promise((resolve, reject) => {
       const child = spawn(this.claudeBin, args, {
         cwd: this.projectRoot,
         env: process.env,
         stdio: ["ignore", "pipe", "pipe"],
+        shell: isWindows,
       });
 
       let stdout = "";
