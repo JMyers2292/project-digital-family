@@ -12,9 +12,9 @@ export class ClaudeCodeClient implements ClaudeClient {
   ) {}
 
   async invoke(opts: ClaudeInvocation): Promise<ClaudeResult> {
-    // Prompt is passed as a positional argument — more reliable than stdin
-    // in non-interactive/containerised environments.
-    const args: string[] = ["-p", opts.prompt];
+    // Prompt is passed via stdin — avoids shell argument splitting on Windows
+    // when shell: true is required to execute .cmd wrappers.
+    const args: string[] = ["-p"];
     if (opts.model) args.push("--model", opts.model);
     if (opts.agent) args.push("--agent", opts.agent);
     if (opts.sessionId) args.push("--resume", opts.sessionId);
@@ -31,7 +31,7 @@ export class ClaudeCodeClient implements ClaudeClient {
       const child = spawn(this.claudeBin, args, {
         cwd: this.projectRoot,
         env: process.env,
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: ["pipe", "pipe", "pipe"],
         shell: isWindows,
       });
 
@@ -42,6 +42,10 @@ export class ClaudeCodeClient implements ClaudeClient {
         child.kill("SIGTERM");
         reject(new Error(`claude timed out after ${timeout}ms`));
       }, timeout);
+
+      // Write prompt to stdin and close — shell won't split it on spaces
+      child.stdin.write(opts.prompt);
+      child.stdin.end();
 
       child.stdout.on("data", (d: Buffer) => (stdout += d.toString()));
       child.stderr.on("data", (d: Buffer) => (stderr += d.toString()));
