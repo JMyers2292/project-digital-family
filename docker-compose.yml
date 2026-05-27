@@ -19,6 +19,14 @@ services:
 
       # Obsidian vault (added in M4)
       - vault:/app/vault
+
+      # --- Host mounts ---
+
+      # Claude Code Pro credentials from your dev machine (read-only).
+      # Run `claude login` on your host first to populate these.
+      # OAuth tokens are plain JSON so they work cross-platform in the container.
+      - ${HOME}/.claude:/root/.claude:ro
+      - ${HOME}/.claude.json:/root/.claude.json:ro
     restart: unless-stopped
 
 # Named volumes are removed by `docker compose down -v`, giving a clean DB/vault

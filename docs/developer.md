@@ -73,13 +73,21 @@ The `vault` volume is empty until M4. The `data` volume is empty until M3.5 (whe
 
 ### Claude auth inside the container
 
-The container runs `claude -p` via `child_process.spawn`. Auth is handled via `ANTHROPIC_API_KEY` in `bot/.env` — the key is passed through to the `claude` process automatically via `env: process.env` in the spawn call. No file mounts or separate login step needed.
+The container runs `claude -p` via `child_process.spawn` under your Claude Pro subscription — no API billing. Auth is provided by mounting your host credentials read-only into the container:
 
-Get your API key from [console.anthropic.com](https://console.anthropic.com) and add it to `bot/.env`:
+```yaml
+- ${HOME}/.claude:/root/.claude:ro
+- ${HOME}/.claude.json:/root/.claude.json:ro
+```
 
+**First-time setup:** Install Claude Code on your host machine and log in before running Docker:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude login   # opens browser OAuth — uses your Pro subscription
 ```
-ANTHROPIC_API_KEY=sk-ant-...
-```
+
+This creates `~/.claude/` and `~/.claude.json` on your host. These are plain JSON OAuth tokens — they work cross-platform inside the Linux container.
 
 ---
 
@@ -107,7 +115,6 @@ Defined in `.env` (gitignored). Copy `.env.example` to get started.
 | Variable | Required | Description |
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
-| `ANTHROPIC_API_KEY` | Yes | Anthropic API key — used by the `claude` CLI for auth. Get it from [console.anthropic.com](https://console.anthropic.com). Required on Windows and in Docker; on Mac/Linux you can use `claude login` instead. |
 | `TG_USER_1` | Yes | Numeric Telegram user ID for Partner 1 (message @userinfobot to find) |
 | `TG_USER_2` | Yes | Numeric Telegram user ID for Partner 2 |
 | `TG_CHAT_ID` | M7+ | Group chat ID — appears in logs on first message (`chat_id=...`) |
