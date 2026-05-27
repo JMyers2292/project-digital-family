@@ -73,13 +73,13 @@ The `vault` volume is empty until M4. The `data` volume is empty until M3.5 (whe
 
 ### Claude auth inside the container
 
-The container runs `claude -p` via `child_process.spawn`. It needs access to your Claude Code credentials, which live in `~/.claude` on your host. The compose file mounts this directory as read-only:
+The container runs `claude -p` via `child_process.spawn`. Auth is handled via `ANTHROPIC_API_KEY` in `bot/.env` — the key is passed through to the `claude` process automatically via `env: process.env` in the spawn call. No file mounts or separate login step needed.
 
-```yaml
-- ${HOME}/.claude:/root/.claude:ro
+Get your API key from [console.anthropic.com](https://console.anthropic.com) and add it to `bot/.env`:
+
 ```
-
-If your credentials are stored elsewhere (check with `claude config` on your host), update this path in `docker-compose.yml`.
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ---
 
@@ -107,6 +107,7 @@ Defined in `.env` (gitignored). Copy `.env.example` to get started.
 | Variable | Required | Description |
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key — used by the `claude` CLI for auth. Get it from [console.anthropic.com](https://console.anthropic.com). Required on Windows and in Docker; on Mac/Linux you can use `claude login` instead. |
 | `TG_USER_1` | Yes | Numeric Telegram user ID for Partner 1 (message @userinfobot to find) |
 | `TG_USER_2` | Yes | Numeric Telegram user ID for Partner 2 |
 | `TG_CHAT_ID` | M7+ | Group chat ID — appears in logs on first message (`chat_id=...`) |

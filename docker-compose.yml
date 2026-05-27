@@ -19,14 +19,6 @@ services:
 
       # Obsidian vault (added in M4)
       - vault:/app/vault
-
-      # --- Host mounts ---
-
-      # Claude Code auth from your dev machine (read-only).
-      # The container runs `claude -p` and needs your existing login credentials.
-      # Claude stores auth in two places — both need to be mounted:
-      - ${HOME}/.claude:/root/.claude:ro         # config directory
-      - ${HOME}/.claude.json:/root/.claude.json:ro  # main config file
     restart: unless-stopped
 
 # Named volumes are removed by `docker compose down -v`, giving a clean DB/vault
