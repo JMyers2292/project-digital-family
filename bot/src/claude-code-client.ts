@@ -6,7 +6,10 @@ import { spawn } from "node:child_process";
 import { type ClaudeClient, type ClaudeInvocation, type ClaudeResult } from "./claude.js";
 
 export class ClaudeCodeClient implements ClaudeClient {
-  constructor(private readonly projectRoot: string) {}
+  constructor(
+    private readonly projectRoot: string,
+    private readonly claudeBin: string = "claude",
+  ) {}
 
   async invoke(opts: ClaudeInvocation): Promise<ClaudeResult> {
     // Prompt is passed as a positional argument — more reliable than stdin
@@ -21,7 +24,7 @@ export class ClaudeCodeClient implements ClaudeClient {
     const start = Date.now();
 
     return new Promise((resolve, reject) => {
-      const child = spawn("claude", args, {
+      const child = spawn(this.claudeBin, args, {
         cwd: this.projectRoot,
         env: process.env,
         stdio: ["ignore", "pipe", "pipe"],

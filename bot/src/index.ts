@@ -7,7 +7,7 @@ const config = loadConfig();
 
 // Swap ClaudeCodeClient for AnthropicSdkClient (or any ClaudeClient
 // implementation) here without touching anything else.
-const claude = new ClaudeCodeClient(config.projectRoot);
+const claude = new ClaudeCodeClient(config.projectRoot, config.claudeBin);
 
 const bot = new DigitalParentBot(config, claude);
 bot.start();
