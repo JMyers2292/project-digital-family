@@ -28,6 +28,7 @@ export class DigitalParentBot {
   private readonly allowed: Map<number, string>;
   private readonly claude: ClaudeClient;
   private readonly router: Router;
+  private readonly vaultPath: string;
 
   constructor(config: Config, claude: ClaudeClient) {
     this.bot = new Bot(config.telegramBotToken);
@@ -37,6 +38,7 @@ export class DigitalParentBot {
     ]);
     this.claude = claude;
     this.router = new Router(claude);
+    this.vaultPath = config.vaultPath;
     this.registerHandlers();
   }
 
@@ -84,7 +86,7 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
     const cls = await this.router.classify(name, text);
     if (cls.intent === "crud_write") {
-      await ctx.reply(handleCrudWrite(cls));
+      await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
     } else {
       await ctx.reply("Not sure how to log that — try something like: /log baby weighed 5.4kg");
     }
@@ -122,7 +124,7 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
     const cls = await this.router.classify(name, `remind me to ${text}`);
     if (cls.intent === "reminder_add") {
-      await ctx.reply(handleReminder(cls));
+      await ctx.reply(await handleReminder(cls, this.vaultPath, name));
     } else {
       await ctx.reply(`Got it — noted: ${text}`);
     }
@@ -141,9 +143,9 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
     const cls = await this.router.classify(name, `log for kid: ${text}`);
     if (cls.intent === "crud_write") {
-      await ctx.reply(handleCrudWrite(cls));
+      await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
     } else {
-      await ctx.reply("Logged — vault writes coming in M4.");
+      await ctx.reply("Not sure how to log that.");
     }
   };
 
@@ -168,7 +170,6 @@ export class DigitalParentBot {
     if (cls.intent === "artifact") {
       await handleArtifact(ctx, this.claude, name, text, cls.fields as ArtifactFields);
     } else {
-      // Fallback: treat the whole thing as an artifact request with sensible defaults
       await handleArtifact(ctx, this.claude, name, text, {
         format: "txt",
         description: text,
@@ -201,11 +202,11 @@ export class DigitalParentBot {
         break;
 
       case "crud_write":
-        await ctx.reply(handleCrudWrite(cls));
+        await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
         break;
 
       case "crud_read":
-        await ctx.reply(handleCrudRead(cls));
+        await ctx.reply(await handleCrudRead(cls, this.vaultPath));
         break;
 
       case "calendar_add":
@@ -216,7 +217,7 @@ export class DigitalParentBot {
         break;
 
       case "reminder_add":
-        await ctx.reply(handleReminder(cls));
+        await ctx.reply(await handleReminder(cls, this.vaultPath, name));
         break;
 
       case "needs_reasoning":
