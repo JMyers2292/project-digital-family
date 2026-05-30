@@ -1,0 +1,20 @@
+# Keep directory structure but ignore personal content.
+# Template/placeholder files (profile.md stubs) are tracked;
+# everything appended at runtime is not.
+
+# Measurements, health, milestones logs — runtime-appended
+kids/*/measurements.md
+kids/*/health.md
+kids/*/milestones.md
+
+# Reminders inbox — runtime-appended
+reminders/inbox.md
+
+# Weekly sync notes — generated at runtime
+syncs/
+
+# Household notes — may contain personal info
+household/notes.md
+
+# People contacts — personal info
+people/contacts.md
