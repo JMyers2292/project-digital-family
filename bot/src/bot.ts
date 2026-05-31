@@ -7,6 +7,8 @@ import { handleCalendar } from "./handlers/calendar.js";
 import { handleReminder } from "./handlers/reminder.js";
 import { handleEscalate } from "./handlers/escalate.js";
 import { handleArtifact } from "./handlers/artifact.js";
+import { startWeeklySync, continueWeeklySync } from "./handlers/weekly-sync.js";
+import { getSyncSession } from "./state.js";
 import { type ArtifactFields } from "./router.js";
 
 const HELP_TEXT = `Digital Parent commands:
@@ -29,6 +31,7 @@ export class DigitalParentBot {
   private readonly claude: ClaudeClient;
   private readonly router: Router;
   private readonly vaultPath: string;
+  private readonly dataPath: string;
 
   constructor(config: Config, claude: ClaudeClient) {
     this.bot = new Bot(config.telegramBotToken);
@@ -39,6 +42,7 @@ export class DigitalParentBot {
     this.claude = claude;
     this.router = new Router(claude);
     this.vaultPath = config.vaultPath;
+    this.dataPath = config.dataPath;
     this.registerHandlers();
   }
 
@@ -150,8 +154,25 @@ export class DigitalParentBot {
   };
 
   private onSync = async (ctx: Context): Promise<void> => {
-    // TODO M8: trigger weekly sync agent
-    await ctx.reply("Weekly sync coming in M8 — not wired up yet.");
+    const name = this.senderName(ctx);
+    if (!name) return;
+
+    const existing = getSyncSession(this.dataPath);
+    if (existing?.status === "active") {
+      await ctx.reply("Weekly sync is already running — answer the question above, or keep going.");
+      return;
+    }
+
+    await ctx.reply("Starting the weekly sync — give me a moment...");
+    await ctx.replyWithChatAction("typing");
+
+    try {
+      const firstMessage = await startWeeklySync(this.claude, this.dataPath);
+      await ctx.reply(firstMessage);
+    } catch (err) {
+      console.error("[sync] start failed:", err);
+      await ctx.reply("Couldn't start the weekly sync — try again in a moment.");
+    }
   };
 
   private onCreate = async (ctx: Context): Promise<void> => {
@@ -192,6 +213,27 @@ export class DigitalParentBot {
     console.log(`[bot] chat_id=${chatId} ${name}: ${JSON.stringify(text)}`);
 
     await ctx.replyWithChatAction("typing");
+
+    // During an active weekly sync, route all messages to the sync session.
+    const syncSession = getSyncSession(this.dataPath);
+    if (syncSession?.status === "active") {
+      try {
+        const { response, isComplete } = await continueWeeklySync(
+          this.claude,
+          this.dataPath,
+          name,
+          text,
+        );
+        await ctx.reply(response);
+        if (isComplete) {
+          console.log("[sync] session complete");
+        }
+      } catch (err) {
+        console.error("[sync] continue failed:", err);
+        await ctx.reply("Something went wrong with the sync — try your reply again.");
+      }
+      return;
+    }
 
     const cls = await this.router.classify(name, text);
 

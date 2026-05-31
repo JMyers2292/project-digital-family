@@ -1,0 +1,12 @@
+[Unit]
+Description=Digital Parent Weekly Sync Resume — Monday 8am AEST
+Requires=digital-parent-sync.service
+
+[Timer]
+# 8:00am Monday AEST — gentle resume if Sunday sync was left incomplete.
+# weekly-sync.sh checks for a paused session and skips if nothing to resume.
+OnCalendar=Mon *-*-* 08:00:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Digital Parent Weekly Sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=digital-parent
+WorkingDirectory=/opt/digital-parent
+EnvironmentFile=/opt/digital-parent/bot/.env
+ExecStart=/opt/digital-parent/scripts/weekly-sync.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=digital-parent-sync
+# Weekly sync can take up to 60 minutes (question timeouts + replies)
+TimeoutStartSec=3600
