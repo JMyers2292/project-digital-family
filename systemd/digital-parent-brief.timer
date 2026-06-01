@@ -1,0 +1,12 @@
+[Unit]
+Description=Digital Parent Morning Brief — daily at 7am
+Requires=digital-parent-brief.service
+
+[Timer]
+# 7:00am local time every day
+OnCalendar=*-*-* 07:00:00
+# If the Pi was off at 7am, fire within 5 min of next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target

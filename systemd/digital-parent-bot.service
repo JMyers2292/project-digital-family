@@ -1,0 +1,19 @@
+[Unit]
+Description=Digital Parent Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=digital-parent
+WorkingDirectory=/opt/digital-parent
+EnvironmentFile=/opt/digital-parent/bot/.env
+ExecStart=/usr/bin/node /opt/digital-parent/bot/dist/index.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=digital-parent-bot
+
+[Install]
+WantedBy=multi-user.target
