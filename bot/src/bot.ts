@@ -281,6 +281,32 @@ export class DigitalParentBot {
     return this.allowed.get(id) ?? null;
   }
 
+  // -- Unsupported media handlers --
+
+  private onVideo = async (ctx: Context): Promise<void> => {
+    if (!this.senderName(ctx)) return;
+    await ctx.reply("Can't look at videos I'm afraid — send me a text message instead.");
+  };
+
+  private onPhoto = async (ctx: Context): Promise<void> => {
+    if (!this.senderName(ctx)) return;
+    await ctx.reply(
+      "Can't analyse photos just yet — the headless Claude CLI doesn't support image inputs. Send me a text description instead.",
+    );
+  };
+
+  private onVoice = async (ctx: Context): Promise<void> => {
+    if (!this.senderName(ctx)) return;
+    await ctx.reply(
+      "Voice notes aren't wired up yet — that's coming in M6 once whisper.cpp is on the Pi.",
+    );
+  };
+
+  private onUnsupported = async (ctx: Context): Promise<void> => {
+    if (!this.senderName(ctx)) return;
+    await ctx.reply("Not sure what to do with that — try sending a text message.");
+  };
+
   // -- Setup --
 
   private registerHandlers(): void {
@@ -295,6 +321,13 @@ export class DigitalParentBot {
     this.bot.command("sync", this.onSync);
     this.bot.command("create", this.onCreate);
     this.bot.on("message:text", this.onTextMessage);
+    this.bot.on("message:video", this.onVideo);
+    this.bot.on("message:video_note", this.onVideo);
+    this.bot.on("message:photo", this.onPhoto);
+    this.bot.on("message:voice", this.onVoice);
+    this.bot.on("message:audio", this.onVoice);
+    this.bot.on("message:sticker", this.onUnsupported);
+    this.bot.on("message:document", this.onUnsupported);
   }
 
   start(): void {
