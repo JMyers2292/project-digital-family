@@ -1,0 +1,12 @@
+[Unit]
+Description=Digital Parent Nightly Backup — 2am daily
+Requires=digital-parent-backup.service
+
+[Timer]
+# 2:00am local time every day
+OnCalendar=*-*-* 02:00:00
+# If the Pi was off at 2am, fire within 5 min of next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target
