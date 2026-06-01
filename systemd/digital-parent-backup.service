@@ -1,0 +1,14 @@
+[Unit]
+Description=Digital Parent Nightly Backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=digital-parent
+WorkingDirectory=/opt/digital-parent
+EnvironmentFile=/opt/digital-parent/bot/.env
+ExecStart=/opt/digital-parent/scripts/backup.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=digital-parent-backup
