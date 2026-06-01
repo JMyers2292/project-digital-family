@@ -10,6 +10,8 @@ services:
       PROJECT_ROOT: /app
       # Directory where state.db is stored — mounted as a named volume below
       DATA_PATH: /app/data
+      # Obsidian vault root inside the container
+      VAULT_PATH: /app/vault
     volumes:
       # --- Persistent data (wiped by `docker compose down -v`) ---
 
