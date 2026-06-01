@@ -1,0 +1,13 @@
+[Unit]
+Description=Digital Parent Weekly Sync — Sunday 7pm AEST
+Requires=digital-parent-sync.service
+
+[Timer]
+# 7:00pm Sunday AEST (UTC+10 standard, UTC+11 daylight saving)
+# OnCalendar uses local time — ensure the Pi's timezone is set to Australia/Sydney
+OnCalendar=Sun *-*-* 19:00:00
+# If the Pi was off at 7pm Sunday, fire within 5 min of next boot (same week only)
+Persistent=true
+
+[Install]
+WantedBy=timers.target
