@@ -8,6 +8,7 @@ import { handleReminder } from "./handlers/reminder.js";
 import { handleEscalate } from "./handlers/escalate.js";
 import { handleArtifact } from "./handlers/artifact.js";
 import { startWeeklySync, continueWeeklySync } from "./handlers/weekly-sync.js";
+import { handleShoppingAdd, handleShoppingRead, handleShoppingClear } from "./handlers/shopping.js";
 import { getSyncSession } from "./state.js";
 import { type ArtifactFields } from "./router.js";
 
@@ -19,8 +20,12 @@ const HELP_TEXT = `Digital Parent commands:
 /event <text> — add to calendar (e.g. /event dentist Tuesday 10am)
 /remind <text> — add a reminder
 /kid <name> <thing> — quick log for a specific kid
+/shop — view shopping list
+/shop add <items> — add to shopping list
+/shop clear — clear the list
 /create <request> — generate a file (e.g. /create weekly menu as HTML)
 /sync — start weekly sync now
+/feedback — how am I doing
 /help — show this list
 
 Or just talk to me normally.`;
@@ -153,6 +158,48 @@ export class DigitalParentBot {
     }
   };
 
+  private onShop = async (ctx: Context): Promise<void> => {
+    const name = this.senderName(ctx);
+    if (!name) return;
+
+    const text = (ctx.match?.toString() ?? "").trim();
+
+    if (!text || text === "list" || text === "show") {
+      await ctx.reply(await handleShoppingRead(this.vaultPath));
+      return;
+    }
+
+    if (text === "clear" || text === "done" || text === "empty") {
+      await ctx.reply(await handleShoppingClear(this.vaultPath));
+      return;
+    }
+
+    const itemText = text.replace(/^add\s+/i, "");
+    const items = itemText
+      .split(/[,\n]+/)
+      .map((i) => i.trim())
+      .filter(Boolean);
+    if (items.length > 0) {
+      await ctx.reply(await handleShoppingAdd(items, this.vaultPath));
+    } else {
+      await ctx.reply(
+        "/shop — view list\n/shop add milk, bread — add items\n/shop clear — clear the list",
+      );
+    }
+  };
+
+  private onFeedback = async (ctx: Context): Promise<void> => {
+    const name = this.senderName(ctx);
+    if (!name) return;
+    await ctx.replyWithChatAction("typing");
+    const reply = await handleEscalate(
+      this.claude,
+      name,
+      "Look at the vault to understand what's been logged about this family so far. Give me a short, honest take on how well I know them and what gaps are worth filling in — dietary info, routines, kids' profiles, anything missing that would help me be more useful day to day.",
+    );
+    await ctx.reply(reply);
+  };
+
   private onSync = async (ctx: Context): Promise<void> => {
     const name = this.senderName(ctx);
     if (!name) return;
@@ -262,6 +309,26 @@ export class DigitalParentBot {
         await ctx.reply(await handleReminder(cls, this.vaultPath, name));
         break;
 
+      case "shopping_add": {
+        const items = (cls.fields.items as string[] | undefined) ?? [];
+        if (items.length > 0) {
+          await ctx.reply(await handleShoppingAdd(items, this.vaultPath));
+        } else {
+          await ctx.reply(
+            "What would you like me to add? e.g. add milk and bread to the shopping list",
+          );
+        }
+        break;
+      }
+
+      case "shopping_read":
+        await ctx.reply(await handleShoppingRead(this.vaultPath));
+        break;
+
+      case "shopping_clear":
+        await ctx.reply(await handleShoppingClear(this.vaultPath));
+        break;
+
       case "needs_reasoning":
         await ctx.reply(await handleEscalate(this.claude, name, text));
         break;
@@ -318,6 +385,8 @@ export class DigitalParentBot {
     this.bot.command("event", this.onEvent);
     this.bot.command("remind", this.onRemind);
     this.bot.command("kid", this.onKid);
+    this.bot.command("shop", this.onShop);
+    this.bot.command("feedback", this.onFeedback);
     this.bot.command("sync", this.onSync);
     this.bot.command("create", this.onCreate);
     this.bot.on("message:text", this.onTextMessage);

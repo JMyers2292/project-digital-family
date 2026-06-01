@@ -28,6 +28,9 @@ Today's date: {{CURRENT_DATE}}
 - `calendar_update` — modifying an existing event
 - `calendar_delete` — removing an event
 - `reminder_add` — adding a reminder or todo
+- `shopping_add` — adding one or more items to the shopping list
+- `shopping_read` — viewing the current shopping list
+- `shopping_clear` — clearing / emptying the shopping list
 - `artifact` — explicit request to produce a formatted document or file (HTML, CSV, markdown, PDF, etc.)
 - `chitchat` — casual conversation, greetings, thanks
 - `needs_reasoning` — questions needing thought, advice, analysis, recommendations
@@ -42,6 +45,9 @@ Today's date: {{CURRENT_DATE}}
 - `calendar_update`: `{ "event_query": string, "changes": object }`
 - `calendar_delete`: `{ "event_query": string }`
 - `reminder_add`: `{ "text": string, "trigger_date": string | null }`
+- `shopping_add`: `{ "items": string[] }` — extract each distinct item as its own string in the array
+- `shopping_read`: `{}`
+- `shopping_clear`: `{}`
 - `artifact`: `{ "format": "html" | "csv" | "md" | "txt", "description": string, "filename": string }`
 - `chitchat`: `{}`
 - `needs_reasoning`: `{ "topic": string, "why": string }`
@@ -72,6 +78,12 @@ Output: `{"intent":"artifact","confidence":0.98,"fields":{"format":"html","descr
 
 Input: `Partner: make me a shopping list as CSV`
 Output: `{"intent":"artifact","confidence":0.96,"fields":{"format":"csv","description":"shopping list","filename":"shopping-list.csv"},"reply":null}`
+
+Input: `Partner: add milk, bread and tinned tomatoes to the shopping list`
+Output: `{"intent":"shopping_add","confidence":0.98,"fields":{"items":["milk","bread","tinned tomatoes"]},"reply":null}`
+
+Input: `Partner: what's on the shopping list?`
+Output: `{"intent":"shopping_read","confidence":0.97,"fields":{},"reply":null}`
 
 Input: `Partner: hey`
 Output: `{"intent":"chitchat","confidence":0.99,"fields":{},"reply":"Hey! What do you need?"}`

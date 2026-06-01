@@ -16,5 +16,8 @@ syncs/
 # Household notes — may contain personal info
 household/notes.md
 
+# Shopping list — runtime-managed by bot
+household/shopping.md
+
 # People contacts — personal info
 people/contacts.md
