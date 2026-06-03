@@ -9,6 +9,7 @@ import { handleEscalate } from "./handlers/escalate.js";
 import { handleArtifact } from "./handlers/artifact.js";
 import { startWeeklySync, continueWeeklySync } from "./handlers/weekly-sync.js";
 import { handleShoppingAdd, handleShoppingRead, handleShoppingClear } from "./handlers/shopping.js";
+import { runBuildSteps, scheduleRestart } from "./handlers/update.js";
 import { getSyncSession } from "./state.js";
 import { type ArtifactFields } from "./router.js";
 
@@ -26,6 +27,7 @@ const HELP_TEXT = `Digital Parent commands:
 /create <request> — generate a file (e.g. /create weekly menu as HTML)
 /sync — start weekly sync now
 /feedback — how am I doing
+/update — pull latest code and restart
 /help — show this list
 
 Or just talk to me normally.`;
@@ -37,6 +39,7 @@ export class DigitalParentBot {
   private readonly router: Router;
   private readonly vaultPath: string;
   private readonly dataPath: string;
+  private readonly projectRoot: string;
 
   constructor(config: Config, claude: ClaudeClient) {
     this.bot = new Bot(config.telegramBotToken);
@@ -48,6 +51,7 @@ export class DigitalParentBot {
     this.router = new Router(claude);
     this.vaultPath = config.vaultPath;
     this.dataPath = config.dataPath;
+    this.projectRoot = config.projectRoot;
     this.registerHandlers();
   }
 
@@ -198,6 +202,23 @@ export class DigitalParentBot {
       "Look at the vault to understand what's been logged about this family so far. Give me a short, honest take on how well I know them and what gaps are worth filling in — dietary info, routines, kids' profiles, anything missing that would help me be more useful day to day.",
     );
     await ctx.reply(reply);
+  };
+
+  private onUpdate = async (ctx: Context): Promise<void> => {
+    const name = this.senderName(ctx);
+    if (!name) return;
+
+    await ctx.reply("Pulling latest changes and rebuilding — give me a minute...");
+
+    const { success, summary } = await runBuildSteps(this.projectRoot);
+
+    if (!success) {
+      await ctx.reply(`Update failed — bot is still running the old version.\n\n${summary}`);
+      return;
+    }
+
+    await ctx.reply(`Update complete. Restarting now — back in a few seconds.\n\n${summary}`);
+    scheduleRestart("digital-parent-bot");
   };
 
   private onSync = async (ctx: Context): Promise<void> => {
@@ -387,6 +408,7 @@ export class DigitalParentBot {
     this.bot.command("kid", this.onKid);
     this.bot.command("shop", this.onShop);
     this.bot.command("feedback", this.onFeedback);
+    this.bot.command("update", this.onUpdate);
     this.bot.command("sync", this.onSync);
     this.bot.command("create", this.onCreate);
     this.bot.on("message:text", this.onTextMessage);

@@ -166,22 +166,45 @@ The morning brief is the main "this bot knows my family" moment. Fill in the vau
 
 ## Deploying updates to the Pi
 
-The bot runs as a systemd service. When you merge new code, deploy it with:
+### From Telegram (easiest)
+
+Once the bot is running, just send:
+
+```
+/update
+```
+
+It will pull the latest code, rebuild, confirm success or show you the error, then restart itself. Downtime is ~2 seconds. If the build fails, the bot keeps running the old version and reports the error.
+
+### From the Pi directly
 
 ```bash
 # On the Pi, from /opt/digital-parent:
 bash scripts/deploy.sh
 ```
 
-This does four things in order:
-1. `git pull` — pulls the latest code (fast-forward only, fails cleanly if there are conflicts)
+Both approaches do the same four steps:
+1. `git pull` — fast-forward only, fails cleanly if there are conflicts
 2. `npm ci` — installs any new/changed dependencies
 3. `npm run build` — compiles TypeScript
 4. `systemctl restart digital-parent-bot` — replaces the running process
 
-**Downtime is ~2 seconds.** Telegram queues messages while the bot is restarting, so nothing sent during that window is lost. The weekly sync session state (`data/sync-session.json`) persists across restarts too.
+Telegram queues messages during the ~2s restart so nothing is lost. Weekly sync session state persists across restarts.
 
-If the build fails, the script exits before restarting — the currently running bot keeps going until you fix it.
+### One-time Pi setup for `/update`
+
+The `digital-parent` user needs passwordless sudo to restart the service. Add this to sudoers on the Pi:
+
+```bash
+sudo visudo -f /etc/sudoers.d/digital-parent
+```
+
+Add the line:
+```
+digital-parent ALL=(ALL) NOPASSWD: /bin/systemctl restart digital-parent-bot
+```
+
+Without this, `/update` and `deploy.sh` will hang waiting for a password.
 
 To check the bot after a deploy:
 ```bash
