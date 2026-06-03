@@ -164,6 +164,33 @@ The morning brief is the main "this bot knows my family" moment. Fill in the vau
 
 ---
 
+## Deploying updates to the Pi
+
+The bot runs as a systemd service. When you merge new code, deploy it with:
+
+```bash
+# On the Pi, from /opt/digital-parent:
+bash scripts/deploy.sh
+```
+
+This does four things in order:
+1. `git pull` — pulls the latest code (fast-forward only, fails cleanly if there are conflicts)
+2. `npm ci` — installs any new/changed dependencies
+3. `npm run build` — compiles TypeScript
+4. `systemctl restart digital-parent-bot` — replaces the running process
+
+**Downtime is ~2 seconds.** Telegram queues messages while the bot is restarting, so nothing sent during that window is lost. The weekly sync session state (`data/sync-session.json`) persists across restarts too.
+
+If the build fails, the script exits before restarting — the currently running bot keeps going until you fix it.
+
+To check the bot after a deploy:
+```bash
+systemctl status digital-parent-bot
+journalctl -u digital-parent-bot -n 30 --follow
+```
+
+---
+
 ## Running the bot
 
 ### Prerequisites
