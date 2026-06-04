@@ -38,6 +38,7 @@ step() { echo; echo -e "${GREEN}━━━ $* ━━━${NC}"; }
 step "1/8  Updating system packages"
 sudo apt-get update -qq
 sudo apt-get upgrade -y -qq
+sudo apt-get install -y -qq git curl
 log "done"
 
 # ---- Step 2: Node.js 22 ----
