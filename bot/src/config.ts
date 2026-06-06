@@ -41,7 +41,7 @@ export function loadConfig(): Config {
   // On the Pi: /opt/digital-parent/vault (or a symlink to it)
   const vaultPath = process.env.VAULT_PATH ?? path.join(projectRoot, "vault");
 
-  const claudeBin = process.env.CLAUDE_BIN ?? "claude";
+  const claudeBin = process.env.CLAUDE_BIN || "claude";
 
   return {
     telegramBotToken,

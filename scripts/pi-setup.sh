@@ -38,6 +38,7 @@ step() { echo; echo -e "${GREEN}━━━ $* ━━━${NC}"; }
 step "1/8  Updating system packages"
 sudo apt-get update -qq
 sudo apt-get upgrade -y -qq
+sudo apt-get install -y -qq git curl
 log "done"
 
 # ---- Step 2: Node.js 22 ----
@@ -110,6 +111,9 @@ if [[ ! -f "$ENV_FILE" ]]; then
   sed -i "s|^PROJECT_ROOT=.*|PROJECT_ROOT=$PROJECT_ROOT|" "$ENV_FILE"
   sed -i "s|^DATA_PATH=.*|DATA_PATH=$PROJECT_ROOT/data|" "$ENV_FILE"
   sed -i "s|^VAULT_PATH=.*|VAULT_PATH=$PROJECT_ROOT/vault|" "$ENV_FILE"
+  # Pi-specific: disable Happy Eyeballs to fix Node.js 22 TLS timeouts on WiFi (no IPv6 routing)
+  sed -i "s|^DISABLE_IPV6=.*|DISABLE_IPV6=true|" "$ENV_FILE"
+  sed -i "s|^NODE_OPTIONS=.*|NODE_OPTIONS=--require $PROJECT_ROOT/fix-network.cjs|" "$ENV_FILE"
   log "paths written to .env"
 else
   log ".env already exists — skipping"
