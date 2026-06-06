@@ -42,7 +42,7 @@ export class Router {
       model: HAIKU,
       agent: "router",
       prompt: `${sender}: ${message}`,
-      timeoutMs: 15_000,
+      timeoutMs: 60_000,
     });
 
     if (result.exitCode !== 0) {

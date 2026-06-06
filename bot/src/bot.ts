@@ -422,6 +422,11 @@ export class DigitalParentBot {
   }
 
   start(): void {
+    this.bot.catch((err) => {
+      const ctx = err.ctx;
+      console.error(`[bot] unhandled error on update ${ctx.update.update_id}:`, err.error);
+      ctx.reply("Something went wrong on my end — try again in a moment.").catch(() => {});
+    });
     this.bot.start({
       onStart: () => console.log("[bot] digital parent bot up"),
     });
