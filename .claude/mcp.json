@@ -2,7 +2,7 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${VAULT_PATH}"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/opt/digital-parent/vault"],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin"
       }
