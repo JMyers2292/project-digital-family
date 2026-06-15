@@ -60,6 +60,10 @@ else
   log "installed"
 fi
 
+# Pre-install the filesystem MCP server so npx doesn't download it on first claude -p call
+sudo npm install -g @modelcontextprotocol/server-filesystem --silent
+log "MCP filesystem server pre-installed"
+
 # ---- Step 4: Clone / update repo ----
 step "4/8  Setting up project at $PROJECT_ROOT"
 if [[ -d "$PROJECT_ROOT/.git" ]]; then
