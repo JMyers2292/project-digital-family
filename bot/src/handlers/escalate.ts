@@ -13,7 +13,6 @@ export async function handleEscalate(
     model: SONNET,
     agent: "reasoner",
     prompt: `${sender}: ${message}`,
-    continueChat: true,
     timeoutMs: 180_000,
   });
 
