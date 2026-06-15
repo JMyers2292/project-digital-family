@@ -75,7 +75,7 @@ export async function handleCrudWrite(
   result: RouterResult,
   vaultPath: string,
   sender: string,
-): Promise<string> {
+): Promise<string | null> {
   const fields = result.fields as Record<string, string>;
   const { subject, attribute, value, unit, date } = fields;
 
@@ -90,7 +90,9 @@ export async function handleCrudWrite(
 
   const kidDir = await resolveKidDir(vaultPath, subject);
   if (!kidDir) {
-    return `Not sure who "${subject}" is — use their name, "child-1", "child-2", "toddler", or "baby".`;
+    // Return null so the caller can escalate to the reasoner
+    console.log(`[crud] unknown subject "${subject}" — escalating to reasoner`);
+    return null;
   }
 
   const filePath = resolveWriteFile(kidDir, attribute);
