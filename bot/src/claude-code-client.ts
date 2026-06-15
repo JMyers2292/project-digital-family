@@ -17,6 +17,11 @@ export class ClaudeCodeClient implements ClaudeClient {
     const args: string[] = ["-p"];
     if (opts.model) args.push("--model", opts.model);
     if (opts.agent) args.push("--agent", opts.agent);
+    // Pass MCP config explicitly for agents that need vault access.
+    // Claude Code doesn't auto-discover .claude/mcp.json in headless mode.
+    if (opts.agent && opts.agent !== "router") {
+      args.push("--mcp-config", ".claude/mcp.json");
+    }
     if (opts.sessionId) args.push("--resume", opts.sessionId);
     else if (opts.continueChat) args.push("--continue");
 
