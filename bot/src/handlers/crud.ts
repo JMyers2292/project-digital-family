@@ -1,7 +1,7 @@
 // CRUD handler — plain code reads/writes to the Obsidian vault (markdown files).
 // No LLM involved. Append-only for measurements, health, milestones, reminders.
 
-import { appendFile, readFile, mkdir } from "node:fs/promises";
+import { appendFile, readFile, readdir, mkdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { type RouterResult } from "../router.js";
 
@@ -34,14 +34,26 @@ const MILESTONE_ATTRS = new Set([
   "sat",
 ]);
 
-function resolveKidDir(vaultPath: string, subject: string): string | null {
+async function resolveKidDir(vaultPath: string, subject: string): Promise<string | null> {
   const s = subject.toLowerCase().trim();
+
+  // Fixed aliases always resolve regardless of vault contents
   if (s === "child-1" || s === "child1" || s === "toddler" || s === "kid1") {
     return join(vaultPath, "kids", "child-1");
   }
   if (s === "child-2" || s === "child2" || s === "baby" || s === "kid2") {
     return join(vaultPath, "kids", "child-2");
   }
+
+  // Scan vault/kids/ for a directory whose name matches the subject
+  try {
+    const entries = await readdir(join(vaultPath, "kids"), { withFileTypes: true });
+    const match = entries.find((e) => e.isDirectory() && e.name.toLowerCase() === s);
+    if (match) return join(vaultPath, "kids", match.name);
+  } catch {
+    // vault/kids doesn't exist yet
+  }
+
   return null;
 }
 
@@ -76,9 +88,9 @@ export async function handleCrudWrite(
     return `Got it — logged "${attribute}: ${value}${unit ? unit : ""}" to household notes.`;
   }
 
-  const kidDir = resolveKidDir(vaultPath, subject);
+  const kidDir = await resolveKidDir(vaultPath, subject);
   if (!kidDir) {
-    return `Not sure who "${subject}" is — try using "child-1", "child-2", "toddler", or "baby".`;
+    return `Not sure who "${subject}" is — use their name, "child-1", "child-2", "toddler", or "baby".`;
   }
 
   const filePath = resolveWriteFile(kidDir, attribute);
@@ -97,9 +109,9 @@ export async function handleCrudRead(result: RouterResult, vaultPath: string): P
     return content ? `Household notes:\n${content}` : "Nothing logged for the household yet.";
   }
 
-  const kidDir = resolveKidDir(vaultPath, subject);
+  const kidDir = await resolveKidDir(vaultPath, subject);
   if (!kidDir) {
-    return `Not sure who "${subject}" is — try using "child-1", "child-2", "toddler", or "baby".`;
+    return `Not sure who "${subject}" is — use their name, "child-1", "child-2", "toddler", or "baby".`;
   }
 
   // Check profile first for static facts, then measurements for logged values
