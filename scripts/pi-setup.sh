@@ -60,6 +60,10 @@ else
   log "installed"
 fi
 
+# Pre-install the filesystem MCP server so npx doesn't download it on first claude -p call
+sudo npm install -g @modelcontextprotocol/server-filesystem --silent
+log "MCP filesystem server pre-installed"
+
 # ---- Step 4: Clone / update repo ----
 step "4/8  Setting up project at $PROJECT_ROOT"
 if [[ -d "$PROJECT_ROOT/.git" ]]; then
@@ -118,6 +122,25 @@ if [[ ! -f "$ENV_FILE" ]]; then
 else
   log ".env already exists — skipping"
 fi
+
+# ---- Step 7b: Resolve mcp.json vault path ----
+# ${VAULT_PATH} may not expand in Claude Code's mcp.json parser, so write the
+# actual path directly into the project-scoped MCP config.
+MCP_FILE="$PROJECT_ROOT/.claude/mcp.json"
+cat > "$MCP_FILE" <<MCPEOF
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$PROJECT_ROOT/vault"],
+      "env": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
+MCPEOF
+log "mcp.json vault path set to $PROJECT_ROOT/vault"
 
 # ---- Step 8: Systemd services ----
 step "8/8  Installing systemd services"

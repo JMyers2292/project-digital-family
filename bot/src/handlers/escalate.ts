@@ -14,7 +14,7 @@ export async function handleEscalate(
     agent: "reasoner",
     prompt: `${sender}: ${message}`,
     continueChat: true,
-    timeoutMs: 90_000,
+    timeoutMs: 180_000,
   });
 
   if (result.exitCode === 0 && result.text) {
