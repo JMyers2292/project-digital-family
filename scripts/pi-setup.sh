@@ -119,6 +119,25 @@ else
   log ".env already exists — skipping"
 fi
 
+# ---- Step 7b: Resolve mcp.json vault path ----
+# ${VAULT_PATH} may not expand in Claude Code's mcp.json parser, so write the
+# actual path directly into the project-scoped MCP config.
+MCP_FILE="$PROJECT_ROOT/.claude/mcp.json"
+cat > "$MCP_FILE" <<MCPEOF
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$PROJECT_ROOT/vault"],
+      "env": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
+MCPEOF
+log "mcp.json vault path set to $PROJECT_ROOT/vault"
+
 # ---- Step 8: Systemd services ----
 step "8/8  Installing systemd services"
 sudo cp "$PROJECT_ROOT/systemd/"*.service "$PROJECT_ROOT/systemd/"*.timer /etc/systemd/system/
