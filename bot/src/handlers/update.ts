@@ -15,7 +15,8 @@ export async function runBuildSteps(projectRoot: string): Promise<UpdateResult> 
     const { stdout, stderr } = await execAsync(
       [
         `cd "${projectRoot}"`,
-        "git pull --ff-only",
+        "git fetch origin",
+        "git reset --hard origin/main",
         "npm ci --prefix bot --silent",
         "npm run build --prefix bot --silent",
       ].join(" && "),
