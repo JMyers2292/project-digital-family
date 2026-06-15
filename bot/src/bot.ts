@@ -99,7 +99,8 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
     const cls = await this.router.classify(name, text);
     if (cls.intent === "crud_write") {
-      await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
+      const result = await handleCrudWrite(cls, this.vaultPath, name);
+      await ctx.reply(result ?? (await handleEscalate(this.claude, name, text)));
     } else {
       await ctx.reply("Not sure how to log that — try something like: /log baby weighed 5.4kg");
     }
@@ -156,7 +157,8 @@ export class DigitalParentBot {
     await ctx.replyWithChatAction("typing");
     const cls = await this.router.classify(name, `log for kid: ${text}`);
     if (cls.intent === "crud_write") {
-      await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
+      const kidResult = await handleCrudWrite(cls, this.vaultPath, name);
+      await ctx.reply(kidResult ?? (await handleEscalate(this.claude, name, text)));
     } else {
       await ctx.reply("Not sure how to log that.");
     }
@@ -311,9 +313,11 @@ export class DigitalParentBot {
         await ctx.reply(cls.reply ?? "Not sure — try /help to see what I can do.");
         break;
 
-      case "crud_write":
-        await ctx.reply(await handleCrudWrite(cls, this.vaultPath, name));
+      case "crud_write": {
+        const crudResult = await handleCrudWrite(cls, this.vaultPath, name);
+        await ctx.reply(crudResult ?? (await handleEscalate(this.claude, name, text)));
         break;
+      }
 
       case "crud_read":
         await ctx.reply(await handleCrudRead(cls, this.vaultPath));
